@@ -38,6 +38,9 @@ function optimize(fg, x, alg::LBFGS;
         @info @sprintf("LBFGS: initializing with f = %.12f, ‖∇f‖ = %.4e", f, normgrad)
 
     while true
+        if normgrad <= alg.gradtol || numiter >= alg.maxiter || rel_Δf<=alg.rel_Δftol
+            break
+        end 
         # compute new search direction
         if length(H) > 0
             Hg = let x = x
@@ -73,7 +76,7 @@ function optimize(fg, x, alg::LBFGS;
         rel_Δf=abs(fhistory[end]-fhistory[end-1])/abs(fhistory[end-1]);
 
         # check stopping criteria and print info
-        if normgrad <= alg.gradtol || numiter >= alg.maxiter || rel_Δf<=rel_Δftol
+        if normgrad <= alg.gradtol || numiter >= alg.maxiter || rel_Δf<=alg.rel_Δftol
             break
         end
         verbosity >= 2 &&
