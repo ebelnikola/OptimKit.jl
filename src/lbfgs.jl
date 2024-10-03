@@ -145,7 +145,7 @@ function optimize(fg, x, alg::LBFGS;
     end
     if verbosity > 0
         if normgrad <= alg.gradtol || rel_Δf<=alg.rel_Δftol
-            @info @sprintf("LBFGS: converged after %d iterations: f = %.12f, ‖∇f‖ = %.4e, rel_Δf",
+            @info @sprintf("LBFGS: converged after %d iterations: f = %.12f, ‖∇f‖ = %.4e, rel_Δf=%.4e",
                             numiter, f, normgrad,rel_Δf)
         else
             @warn @sprintf("LBFGS: not converged to requested tol: f = %.12f, ‖∇f‖ = %.4e",
