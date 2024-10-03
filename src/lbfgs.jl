@@ -2,15 +2,16 @@ struct LBFGS{T<:Real,L<:AbstractLineSearch} <: OptimizationAlgorithm
     m::Int
     maxiter::Int
     gradtol::T
+    rel_Δftol::T
     acceptfirst::Bool
     linesearch::L
     verbosity::Int
 end
-LBFGS(m::Int = 8; maxiter = typemax(Int), gradtol::Real = 1e-8, acceptfirst::Bool = true,
+LBFGS(m::Int = 8; maxiter = typemax(Int), gradtol::Real = 1e-8, rel_Δftol=1e-3, acceptfirst::Bool = true,
         verbosity::Int = 0,
         linesearch::AbstractLineSearch = HagerZhangLineSearch(;verbosity = verbosity - 2)) =
-    LBFGS(m, maxiter, gradtol, acceptfirst, linesearch, verbosity)
-
+    LBFGS(m, maxiter, gradtol,rel_Δftol, acceptfirst, linesearch, verbosity)
+   
 function optimize(fg, x, alg::LBFGS;
                     precondition = _precondition, finalize! = _finalize!,
                     retract = _retract, inner = _inner, transport! = _transport!,
@@ -24,6 +25,8 @@ function optimize(fg, x, alg::LBFGS;
     normgrad = sqrt(innergg)
     fhistory = [f]
     normgradhistory = [normgrad]
+    rel_Δf=1.0;
+
 
     TangentType = typeof(g)
     ScalarType = typeof(innergg)
@@ -67,9 +70,10 @@ function optimize(fg, x, alg::LBFGS;
         normgrad = sqrt(innergg)
         push!(fhistory, f)
         push!(normgradhistory, normgrad)
+        rel_Δf=abs(fhistory[end]-fhistory[end-1])/abs(fhistory[end-1]);
 
         # check stopping criteria and print info
-        if normgrad <= alg.gradtol || numiter >= alg.maxiter
+        if normgrad <= alg.gradtol || numiter >= alg.maxiter || rel_Δf<=rel_Δftol
             break
         end
         verbosity >= 2 &&
@@ -137,9 +141,9 @@ function optimize(fg, x, alg::LBFGS;
         end
     end
     if verbosity > 0
-        if normgrad <= alg.gradtol
-            @info @sprintf("LBFGS: converged after %d iterations: f = %.12f, ‖∇f‖ = %.4e",
-                            numiter, f, normgrad)
+        if normgrad <= alg.gradtol || rel_Δf<=rel_Δftol
+            @info @sprintf("LBFGS: converged after %d iterations: f = %.12f, ‖∇f‖ = %.4e, rel_Δf",
+                            numiter, f, normgrad,rel_Δf)
         else
             @warn @sprintf("LBFGS: not converged to requested tol: f = %.12f, ‖∇f‖ = %.4e",
                             f, normgrad)
