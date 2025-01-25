@@ -147,8 +147,8 @@ function optimize(fg, x, alg::LBFGS;
         verbosity > 0 && @info @sprintf("LBFGS: converged after %d iterations: f = %.12f, ‖∇f‖ = %.4e, rel_Δf=%.4e",
             numiter, f, normgrad, rel_Δf)
     else
-        @warn @sprintf("LBFGS: not converged to requested tol: f = %.12f, ‖∇f‖ = %.4e",
-            f, normgrad)
+        @warn @sprintf("LBFGS: not converged to requested tol: f = %.12f, ‖∇f‖ = %.4e, rel_Δf=%.4e",
+            f, normgrad, rel_Δf)
     end
     history = [fhistory normgradhistory]
     return x, f, g, numfg, history
